@@ -1,5 +1,8 @@
 ## Verify
-this is a sample app to check basic features of verify
+
+This is a sample app to check basic features of verify.
+
+Please refer to the [Getting Started](https://docs.verifymedia.com/smart-contracts/) guide for more info.
 
 ## Setup
 
