@@ -5,17 +5,19 @@ const pinataSDK = require("@pinata/sdk");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const IDENTITY_PROXY_CONTRACT = "0x27BA7E931906FebA79dED5d32947b12f30379135";
+const IDENTITY_PROXY_CONTRACT = "0xdCE27c4a76bE1fF9F9C543E13FCC3591E33A0E25";
 const CONTENTGRAPH_PROXY_CONTRACT =
-  "0xEF2E371BaFAe46a116519F18A1cfF750570E8842";
+  "0xEe586a3655EB0D017643551e9849ed828Fd7c7FA";
 const ZeroHash =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+const rpcUrl = "https://rpc.verify-testnet.gelato.digital";
 
 async function buildDomainSeparator() {
   //Domain separator for Identity Registry Sandbox, see EIP712 specification for more detail.
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
   const IdentityRegistry = new Contract(
     IDENTITY_PROXY_CONTRACT,
@@ -27,8 +29,18 @@ async function buildDomainSeparator() {
 
   const domainSepartor = keccak256(
     ethers.AbiCoder.defaultAbiCoder().encode(
-        ["bytes32","bytes32","bytes32","uint256","address"],
-        [keccak256(ethers.toUtf8Bytes("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")),ethers.id(eip.name),ethers.id(eip.version),eip.chainId,IDENTITY_PROXY_CONTRACT]
+      ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+      [
+        keccak256(
+          ethers.toUtf8Bytes(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+          )
+        ),
+        ethers.id(eip.name),
+        ethers.id(eip.version),
+        eip.chainId,
+        IDENTITY_PROXY_CONTRACT,
+      ]
     )
   );
   return domainSepartor;
@@ -38,13 +50,14 @@ async function registerRoot() {
   console.log("Registering root...");
   const rootWallet = new ethers.Wallet(
     process.env.ROOT_WALLET,
-    ethers.getDefaultProvider("matic-mumbai") //
+    new ethers.JsonRpcProvider(rpcUrl) //
   );
 
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
+
   const IdentityRegistry = new Contract(
     IDENTITY_PROXY_CONTRACT,
     identityRegistryABI,
@@ -69,7 +82,15 @@ async function createRegisterSignature(
   const nonce = await IdentityRegistry.nonces(rootWallet.address);
 
   const structData = ethers.AbiCoder.defaultAbiCoder().encode(
-    ["bytes32", "address", "address", "uint256", "uint256", "uint256", "uint256"],
+    [
+      "bytes32",
+      "address",
+      "address",
+      "uint256",
+      "uint256",
+      "uint256",
+      "uint256",
+    ],
     [
       keccak256(
         ethers.toUtf8Bytes(
@@ -102,12 +123,12 @@ async function createRegisterSignature(
 async function registerIntermediate() {
   const rootWallet = new ethers.Wallet(
     process.env.ROOT_WALLET,
-    ethers.getDefaultProvider("matic-mumbai") //
+    new ethers.JsonRpcProvider(rpcUrl) //
   );
 
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
   const IdentityRegistry = new Contract(
     IDENTITY_PROXY_CONTRACT,
@@ -115,12 +136,11 @@ async function registerIntermediate() {
     intermediateWallet
   );
 
-  const now = (await ethers.getDefaultProvider("matic-mumbai").getBlock())
-    .timestamp;
+  const now = (await new ethers.JsonRpcProvider(rpcUrl).getBlock()).timestamp;
 
   const expiry = now + 60 * 60 * 24 * 3; // 3 day: 60 secs by 60 mins by 24 hrs
   const deadline = now + 60 * 60 * 24;
-  const chainId = 80001n;
+  const chainId = 1833;
 
   console.log("Generating signature...");
 
@@ -150,7 +170,7 @@ async function registerIntermediate() {
 async function whoIs(address = "") {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
   if (!address) {
     address = intermediate.address;
@@ -198,7 +218,7 @@ function generateRandomString(length) {
 function signMetadata(metadata) {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
 
   const metadataString = JSON.stringify(metadata.data);
@@ -216,19 +236,18 @@ function signMetadata(metadata) {
 async function publishContent() {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
 
-  
   const random_content = generateRandomString(10);
-  console.log("Publishing content: ", { "text": random_content });
+  console.log("Publishing content: ", { text: random_content });
 
   const newAssetId = keccak256(ethers.toUtf8Bytes(random_content));
   console.log(`AssetId: ${newAssetId}`);
-  
-  console.log("Storing Content...")
-  const contentCID = await uploadToIPFS({ "text": random_content });
-  console.log("Stored content at: ipfs://")
+
+  console.log("Storing Content...");
+  const contentCID = await uploadToIPFS({ text: random_content });
+  console.log("Stored content at: ipfs://");
 
   const metadata = {
     data: {
@@ -263,7 +282,7 @@ async function publishContent() {
     intermediate
   );
 
-  console.log("Publishing to the ContentGraph...")
+  console.log("Publishing to the ContentGraph...");
   const txn = await ContentGraph.publish(
     ZeroHash, // Using the root as parent bytes32(0)
     {
@@ -297,7 +316,7 @@ async function fetchFileFromIPFS(cid) {
 async function consumeContent(assetId) {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    ethers.getDefaultProvider("matic-mumbai")
+    new ethers.JsonRpcProvider(rpcUrl)
   );
 
   const ContentGraph = new Contract(
@@ -328,7 +347,10 @@ async function consumeContent(assetId) {
     console.log("Signature message matched!");
   }
 
-  const address = ethers.recoverAddress(calculatedMessage, metadata.signature.signature);
+  const address = ethers.recoverAddress(
+    calculatedMessage,
+    metadata.signature.signature
+  );
   console.log("Address recovered from signature: ", address);
 
   const rootAddress = await whoIs(address);
@@ -339,7 +361,7 @@ async function consumeContent(assetId) {
 
 async function main() {
   /**
-   * remember to fund the intermediate wallet via polygon mumbai faucets before calling any of the below functions
+   * remember to fund the intermediate wallet following steps mentioned in https://docs.verifymedia.com/verify-testnet before calling any of the below functions
    */
 
   // Register Root: Needs to be run only once
@@ -353,11 +375,11 @@ async function main() {
   // console.log(root);
 
   // Publish a random string as content.
-  // const { assetId } = await publishContent();
+  const { assetId } = await publishContent();
 
   // Verify content published
   // await consumeContent(assetId);
-  // console.log(`\nCheck latest transactions at https://mumbai.polygonscan.com/address/${CONTENTGRAPH_PROXY_CONTRACT}`);
+  // console.log(`\nCheck latest transactions at https://verify-testnet.blockscout.com/address/${CONTENTGRAPH_PROXY_CONTRACT}`);
 }
 
 main();
