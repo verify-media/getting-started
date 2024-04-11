@@ -2,7 +2,21 @@
 
 This is a sample app to check basic features of verify.
 
-Please refer to the [Getting Started](https://docs.verifymedia.com) guide for more info.
+Please refer to the [Getting Started](https://docs.verifymedia.com/publishing/getting-started) guide for more info.
+
+## Network
+VERIFY Protocol is deployed on an Polygon CDK validium based appchain. 
+
+```
+Network Name: VERIFY Testnet
+RPC URL: https://rpc.verify-testnet.gelato.digital
+Chain ID: 1833
+Currency Symbol: MATIC
+Block Explorer URL: https://verify-testnet.blockscout.com/
+Settlement Layer: Amoy 
+```
+
+more details can be found [here](https://docs.verifymedia.com/verify-testnet).
 
 ## Setup
 
@@ -36,10 +50,4 @@ To run the project, use the command node index.js.
 
 ## Note:
 
-remember to fund the intermediate wallet via Polygon Mumbai faucets before calling any of the functions.
-
-- https://mumbaifaucet.com/
-- https://faucet.polygon.technology/
-- https://bwarelabs.com/faucets/polygon-testnet
-
-etc.
+remember to fund the intermediate wallet following steps mentioned in [here](https://docs.verifymedia.com/verify-testnet) before calling any of the functions
