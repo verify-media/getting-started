@@ -13,11 +13,13 @@ const ZeroHash =
 
 const rpcUrl = "https://rpc.verify-testnet.gelato.digital";
 
+const rpcProvider = new ethers.JsonRpcProvider(rpcUrl)
+
 async function buildDomainSeparator() {
   //Domain separator for Identity Registry Sandbox, see EIP712 specification for more detail.
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
   const IdentityRegistry = new Contract(
     IDENTITY_PROXY_CONTRACT,
@@ -50,12 +52,12 @@ async function registerRoot() {
   console.log("Registering root...");
   const rootWallet = new ethers.Wallet(
     process.env.ROOT_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl) //
+    rpcProvider //
   );
 
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
 
   const IdentityRegistry = new Contract(
@@ -66,7 +68,7 @@ async function registerRoot() {
 
   console.log(await IdentityRegistry.getAddress());
 
-  await IdentityRegistry.registerRoot(rootWallet.address, "");
+  await IdentityRegistry.registerRoot(rootWallet.address, `MOCK_PUBLISHER_${new Date().getTime()}`);
   console.log("Root registered!");
 }
 
@@ -123,12 +125,12 @@ async function createRegisterSignature(
 async function registerIntermediate() {
   const rootWallet = new ethers.Wallet(
     process.env.ROOT_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl) //
+    rpcProvider //
   );
 
   const intermediateWallet = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
   const IdentityRegistry = new Contract(
     IDENTITY_PROXY_CONTRACT,
@@ -136,7 +138,7 @@ async function registerIntermediate() {
     intermediateWallet
   );
 
-  const now = (await new ethers.JsonRpcProvider(rpcUrl).getBlock()).timestamp;
+  const now = (await rpcProvider.getBlock()).timestamp;
 
   const expiry = now + 60 * 60 * 24 * 3; // 3 day: 60 secs by 60 mins by 24 hrs
   const deadline = now + 60 * 60 * 24;
@@ -170,7 +172,7 @@ async function registerIntermediate() {
 async function whoIs(address = "") {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
   if (!address) {
     address = intermediate.address;
@@ -218,7 +220,7 @@ function generateRandomString(length) {
 function signMetadata(metadata) {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
 
   const metadataString = JSON.stringify(metadata.data);
@@ -236,7 +238,7 @@ function signMetadata(metadata) {
 async function publishContent() {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
 
   const random_content = generateRandomString(10);
@@ -316,7 +318,7 @@ async function fetchFileFromIPFS(cid) {
 async function consumeContent(assetId) {
   const intermediate = new ethers.Wallet(
     process.env.INTER_WALLET,
-    new ethers.JsonRpcProvider(rpcUrl)
+    rpcProvider
   );
 
   const ContentGraph = new Contract(
@@ -367,19 +369,28 @@ async function main() {
   // Register Root: Needs to be run only once
   // await registerRoot();
 
+  // Wait for the root registration to be mined
+  // console.log("Waiting for root registration...");
+  // await new Promise((resolve) => setTimeout(resolve, 3000));
+
   // Register Intermediate: Needs to be run only once
   // await registerIntermediate();
 
+  // console.log("Waiting for signer registration...");
+  // await new Promise((resolve) => setTimeout(resolve, 3000));
+
   // Check the registration of the Intermediate, should return Root address
-  // const root = await whoIs();
-  // console.log(root);
+  const root = await whoIs();
+  console.log(root);
 
   // Publish a random string as content.
   const { assetId } = await publishContent();
 
   // Verify content published
-  // await consumeContent(assetId);
-  // console.log(`\nCheck latest transactions at https://verify-testnet.blockscout.com/address/${CONTENTGRAPH_PROXY_CONTRACT}`);
+  await consumeContent(assetId);
+  console.log(
+    `\nCheck latest transactions at https://verify-testnet.blockscout.com/address/${CONTENTGRAPH_PROXY_CONTRACT}`
+  );
 }
 
 main();

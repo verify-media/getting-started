@@ -2,7 +2,7 @@
 
 This is a sample app to check basic features of verify.
 
-Please refer to the [Getting Started](https://docs.verifymedia.com) guide for more info.
+Please refer to the [Getting Started](https://docs.verifymedia.com/publishing/getting-started) guide for more info.
 
 ## Network
 VERIFY Protocol is deployed on an Polygon CDK validium based appchain. 
