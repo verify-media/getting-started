@@ -367,17 +367,17 @@ async function main() {
    */
 
   // Register Root: Needs to be run only once
-  // await registerRoot();
+  await registerRoot();
 
   // Wait for the root registration to be mined
-  // console.log("Waiting for root registration...");
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
+  console.log("Waiting for root registration...");
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Register Intermediate: Needs to be run only once
-  // await registerIntermediate();
+  await registerIntermediate();
 
   // console.log("Waiting for signer registration...");
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Check the registration of the Intermediate, should return Root address
   const root = await whoIs();
