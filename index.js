@@ -145,7 +145,7 @@ async function registerIntermediate() {
 
   const expiry = now + 60 * 60 * 24 * 3; // 3 day: 60 secs by 60 mins by 24 hrs
   const deadline = now + 60 * 60 * 24;
-  const chainId = 1833;
+  const chainId = 80002;
 
   console.log("Generating signature...");
 
@@ -367,7 +367,7 @@ async function main() {
   // Register Intermediate: Needs to be run only once
   await registerIntermediate();
 
-  // console.log("Waiting for signer registration...");
+  console.log("Waiting for signer registration...");
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Check the registration of the Intermediate, should return Root address
