@@ -5,18 +5,9 @@ This is a sample app to check basic features of verify.
 Please refer to the [Getting Started](https://docs.verifymedia.com/publishing/getting-started) guide for more info.
 
 ## Network
-VERIFY Protocol is deployed on an Polygon CDK validium based appchain. 
+VERIFY Protocol is deployed on Polygon Proof-of-Stake(PoS) network. 
 
-```
-Network Name: Polygon Amoy Testnet
-RPC URL: https://rpc-amoy.polygon.technology/
-Chain ID: 80002
-Currency Symbol: MATIC
-Block Explorer URL: https://amoy.polygonscan.com/
-Faucet: https://faucet.polygon.technology/
-```
-
-more details can be found [here](https://docs.verifymedia.com/verify-testnet).
+For more details on Polygon network can be found [here](https://docs.polygon.technology/pos/get-started/building-on-polygon/#network-details).
 
 ## Setup
 
