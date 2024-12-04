@@ -5,15 +5,15 @@ const pinataSDK = require("@pinata/sdk");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const IDENTITY_PROXY_CONTRACT = "0xdCE27c4a76bE1fF9F9C543E13FCC3591E33A0E25";
+const IDENTITY_PROXY_CONTRACT = "0xEe586a3655EB0D017643551e9849ed828Fd7c7FA";
 const CONTENTGRAPH_PROXY_CONTRACT =
-  "0xEe586a3655EB0D017643551e9849ed828Fd7c7FA";
+  "0xEF2E371BaFAe46a116519F18A1cfF750570E8842";
 const ZeroHash =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-const rpcUrl = "https://rpc.verify-testnet.gelato.digital";
+const rpcUrl = "https://rpc-amoy.polygon.technology/";
 
-const rpcProvider = new ethers.JsonRpcProvider(rpcUrl)
+const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
 
 async function buildDomainSeparator() {
   //Domain separator for Identity Registry Sandbox, see EIP712 specification for more detail.
@@ -68,7 +68,10 @@ async function registerRoot() {
 
   console.log(await IdentityRegistry.getAddress());
 
-  await IdentityRegistry.registerRoot(rootWallet.address, `MOCK_PUBLISHER_${new Date().getTime()}`);
+  await IdentityRegistry.registerRoot(
+    rootWallet.address,
+    `MOCK_PUBLISHER_${new Date().getTime()}`
+  );
   console.log("Root registered!");
 }
 
@@ -142,7 +145,7 @@ async function registerIntermediate() {
 
   const expiry = now + 60 * 60 * 24 * 3; // 3 day: 60 secs by 60 mins by 24 hrs
   const deadline = now + 60 * 60 * 24;
-  const chainId = 1833;
+  const chainId = 80002;
 
   console.log("Generating signature...");
 
@@ -170,10 +173,7 @@ async function registerIntermediate() {
 }
 
 async function whoIs(address = "") {
-  const intermediate = new ethers.Wallet(
-    process.env.INTER_WALLET,
-    rpcProvider
-  );
+  const intermediate = new ethers.Wallet(process.env.INTER_WALLET, rpcProvider);
   if (!address) {
     address = intermediate.address;
   }
@@ -218,10 +218,7 @@ function generateRandomString(length) {
 }
 
 function signMetadata(metadata) {
-  const intermediate = new ethers.Wallet(
-    process.env.INTER_WALLET,
-    rpcProvider
-  );
+  const intermediate = new ethers.Wallet(process.env.INTER_WALLET, rpcProvider);
 
   const metadataString = JSON.stringify(metadata.data);
   const message = keccak256(ethers.toUtf8Bytes(metadataString));
@@ -236,10 +233,7 @@ function signMetadata(metadata) {
 }
 
 async function publishContent() {
-  const intermediate = new ethers.Wallet(
-    process.env.INTER_WALLET,
-    rpcProvider
-  );
+  const intermediate = new ethers.Wallet(process.env.INTER_WALLET, rpcProvider);
 
   const random_content = generateRandomString(10);
   console.log("Publishing content: ", { text: random_content });
@@ -316,10 +310,7 @@ async function fetchFileFromIPFS(cid) {
 }
 
 async function consumeContent(assetId) {
-  const intermediate = new ethers.Wallet(
-    process.env.INTER_WALLET,
-    rpcProvider
-  );
+  const intermediate = new ethers.Wallet(process.env.INTER_WALLET, rpcProvider);
 
   const ContentGraph = new Contract(
     CONTENTGRAPH_PROXY_CONTRACT,
@@ -376,7 +367,7 @@ async function main() {
   // Register Intermediate: Needs to be run only once
   await registerIntermediate();
 
-  // console.log("Waiting for signer registration...");
+  console.log("Waiting for signer registration...");
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Check the registration of the Intermediate, should return Root address
